@@ -1,0 +1,46 @@
+services:
+  jellyfin:
+    image: linuxserver/jellyfin
+    container_name: jellyfin
+    restart:  unless-stopped
+    ports:
+      - "8096:8096"
+      - "8920:8920"
+    networks:
+      - proxy
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - /media/pi/Elements/TUUR:/media
+    restart: 'unless-stopped'
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    mem_limit: 1000M
+    memswap_limit: 1200M
+  
+  caddy:
+    image: caddy
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    networks:
+      - "proxy"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
+networks:
+  proxy:
+    driver: bridge
+
+volumes: # these lines are necessary for creating the volumes
+  jellyfin-config:
+  jellyfin-cache:
+  caddy_data:
+  caddy_config:
