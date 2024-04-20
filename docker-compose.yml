@@ -12,7 +12,6 @@ services:
       - jellyfin-config:/config
       - jellyfin-cache:/cache
       - /media/pi/Elements/TUUR:/media
-    restart: 'unless-stopped'
     environment:
       - PUID=1000
       - PGID=1000
