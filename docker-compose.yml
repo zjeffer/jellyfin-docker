@@ -12,14 +12,19 @@ services:
       - jellyfin-config:/config
       - jellyfin-cache:/cache
       - /media/pi/Elements/TUUR:/media
-    restart: 'unless-stopped'
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     mem_limit: 1000M
     memswap_limit: 1200M
-  
+    healthcheck:
+      test: curl --fail http://localhost:8096 || exit 1
+      interval: 20s
+      retries: 5
+      start_period: 7s
+      timeout: 10s
+
   caddy:
     image: caddy
     container_name: caddy
@@ -29,11 +34,126 @@ services:
       - "443:443"
       - "443:443/udp"
     networks:
-      - "proxy"
+      - proxy
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+  
+  jellyseerr: # overseerr with jellyfin support
+    image: fallenbagel/jellyseerr:latest
+    restart: always
+    ports:
+      - "5055:5055"
+    networks:
+      - proxy
+    depends_on:
+      jellyfin:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL}
+      - TZ=${TZ}
+    volumes:
+      - "jellyseerr-config:/config"
+  
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    restart: always
+    ports:
+      - "9696:9696"
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - "prowlarr-config:/config"
+  
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    restart: always
+    ports:
+      - "8989:8989"
+    networks:
+      - proxy
+    depends_on:
+      prowlarr:
+        condition: service_started
+      transmission:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - "sonarr-config:/config"
+      - "${JELLYFIN_MEDIA_STORAGE_ROOT}/Series:/shows"
+      - "${MEDIA_DOWNLOAD_LOCATION}:/downloads"
+    healthcheck:
+      test: curl --fail http://localhost:8989 || exit 1
+      interval: 20s
+      retries: 5
+      start_period: 7s
+      timeout: 10s
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    restart: always
+    ports:
+      - "7878:7878"
+    networks:
+      - proxy
+    depends_on:
+      prowlarr:
+        condition: service_started
+      transmission:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - "radarr-config:/config"
+      - "${JELLYFIN_MEDIA_STORAGE_ROOT}/Films:/movies"
+      - "${MEDIA_DOWNLOAD_LOCATION}:/downloads"
+    healthcheck:
+      test: curl --fail http://localhost:7878 || exit 1
+      interval: 20s
+      retries: 5
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    restart: always
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      # - TRANSMISSION_WEB_HOME= #optional
+      # - USER= #optional
+      # - PASS= #optional
+      # - WHITELIST= #optional
+      # - PEERPORT= #optional
+      # - HOST_WHITELIST= #optional
+    volumes:
+      - "transmission-config:/config"
+      - "${MEDIA_DOWNLOAD_LOCATION}:/downloads"
+      # - "/path/to/watch/folder:/watch"
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+    healthcheck:
+      test: curl --fail http://localhost:9091 || exit 1
+      interval: 20s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
 
 networks:
   proxy:
@@ -44,3 +164,8 @@ volumes: # these lines are necessary for creating the volumes
   jellyfin-cache:
   caddy_data:
   caddy_config:
+  jellyseerr-config:
+  sonarr-config:
+  radarr-config:
+  prowlarr-config:
+  transmission-config:
