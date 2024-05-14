@@ -1,6 +1,6 @@
 services:
   jellyfin:
-    image: linuxserver/jellyfin
+    image: linuxserver/jellyfin:latest
     container_name: jellyfin
     restart:  unless-stopped
     ports:
@@ -16,11 +16,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Brussels
-    mem_limit: 1000M
-    memswap_limit: 1200M
+    mem_limit: 1200M
+    memswap_limit: 1500M
   
   caddy:
-    image: caddy
+    image: caddy:latest
     container_name: caddy
     restart: unless-stopped
     ports:
