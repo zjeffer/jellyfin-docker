@@ -1,1 +1,2 @@
 Caddyfile
+data/ # we store the volumes here 

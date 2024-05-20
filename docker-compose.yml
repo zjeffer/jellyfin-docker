@@ -9,15 +9,24 @@ services:
     networks:
       - proxy
     volumes:
-      - jellyfin-config:/config
-      - jellyfin-cache:/cache
-      - /media/pi/Elements/TUUR:/media
+      - ./data/jellyfin-config:/config
+      - ./data/jellyfin-cache:/cache
+      - /run/media/admin/Elements/TUUR:/media
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Brussels
-    mem_limit: 1200M
-    memswap_limit: 1500M
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
   
   caddy:
     image: caddy:latest
@@ -31,15 +40,10 @@ services:
       - "proxy"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
+      - ./data/caddy_data:/data
+      - ./data/caddy_config:/config
 
 networks:
   proxy:
     driver: bridge
 
-volumes: # these lines are necessary for creating the volumes
-  jellyfin-config:
-  jellyfin-cache:
-  caddy_data:
-  caddy_config:
