@@ -11,22 +11,16 @@ services:
     volumes:
       - ./data/jellyfin-config:/config
       - ./data/jellyfin-cache:/cache
-      - /run/media/admin/Elements/TUUR:/media
+      - /run/media/admin/Elements/TUUR:/media/Elements/
+      - /run/media/admin/MiniElements:/media/MiniElements/
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Brussels
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-    runtime: nvidia
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "989" # render group
   
   caddy:
     image: caddy:latest
