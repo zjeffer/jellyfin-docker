@@ -13,6 +13,8 @@ services:
       - ./data/jellyfin-cache:/cache
       - /run/media/admin/Elements/TUUR:/media/Elements/
       - /run/media/admin/MiniElements:/media/MiniElements/
+      - /run/media/admin/barracuda/tv:/media/tv/
+      - /run/media/admin/barracuda/movies:/media/movies
     environment:
       - PUID=1000
       - PGID=1000
@@ -36,6 +38,97 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./data/caddy_data:/data
       - ./data/caddy_config:/config
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - ./sonarr/config:/config
+      - /run/media/admin/barracuda/tv:/tv
+      - /run/media/admin/barracuda/downloads:/downloads
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://127.0.0.1:8989/sonarr/ping" ]
+      interval: 30s
+      retries: 10
+    ports: 
+      - 8989:8989
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - ./radarr/config:/config
+      - /run/media/admin/barracuda/movies:/movies
+      - /run/media/admin/barracuda/downloads:/downloads
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Brussels
+      - PORT=5055
+    ports:
+      - 5055:5055
+    volumes:
+      - ./jellyseerr/config:/app/config
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - ./prowlarr/data:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+      - WEBUI_PORT=8080
+    volumes:
+      - ./qbittorrent/config:/config
+      - /run/media/admin/barracuda/downloads:/downloads
+      - /run/media/admin/Elements/TUUR:/media/Elements/
+      - /run/media/admin/MiniElements:/media/MiniElements/
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/Brussels
+    ports:
+      - 8191:8191
+    restart: unless-stopped
 
 networks:
   proxy:

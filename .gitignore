@@ -1,2 +1,7 @@
 Caddyfile
 data/
+jellyseerr/
+prowlarr/
+qbittorrent/
+radarr/
+sonarr/
