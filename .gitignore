@@ -5,3 +5,4 @@ prowlarr/
 qbittorrent/
 radarr/
 sonarr/
+.env
