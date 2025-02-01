@@ -52,9 +52,11 @@ services:
       - /run/media/admin/barracuda/downloads:/downloads
     restart: unless-stopped
     healthcheck:
+      interval: 10s 
+      retries: 5
+      start_period: 30s
+      timeout: 20s
       test: [ "CMD", "curl", "--fail", "http://127.0.0.1:8989/sonarr/ping" ]
-      interval: 30s
-      retries: 10
     ports: 
       - 8989:8989
 
@@ -71,6 +73,12 @@ services:
       - /run/media/admin/barracuda/downloads:/downloads
     ports:
       - 7878:7878
+    healthcheck:
+      interval: 10s 
+      retries: 5
+      start_period: 30s
+      timeout: 20s
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:7878/radarr/ping"]
     restart: unless-stopped
 
   jellyseerr:
@@ -134,7 +142,12 @@ services:
     image: ghcr.io/manimatter/decluttarr:latest
     container_name: decluttarr
     network_mode: host
-    restart: no
+    restart: unless-stopped
+    depends_on: 
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -186,6 +199,37 @@ services:
       QBITTORRENT_URL: http://localhost:8080
       QBITTORRENT_USERNAME: admin
       QBITTORRENT_PASSWORD: ${QBITTORRENT_PASS}
+
+  dashdot:
+    container_name: dashdot
+    image: mauricenino/dashdot:nvidia
+    restart: unless-stopped
+    privileged: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities:
+                - gpu
+    volumes:
+      - /:/mnt/host:ro
+    ports: 
+      - 3001:3001
+    environment:
+      DASHDOT_WIDGET_LIST: 'os,cpu,storage,ram,network,gpu'
+
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    network_mode: host
+    env_file: 
+      - .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ./homarr/appdata:/appdata
+    environment:
+      - SECRET_ENCRYPTION_KEY=${HOMARR_KEY} # <--- can be generated with `openssl rand -hex 32`
 
 networks:
   proxy:
