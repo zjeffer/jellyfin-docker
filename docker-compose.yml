@@ -7,7 +7,7 @@ services:
       - "8096:8096"
       - "8920:8920"
     networks:
-      - proxy
+      - jellyfin
     volumes:
       - ./data/jellyfin-config:/config
       - ./data/jellyfin-cache:/cache
@@ -23,6 +23,12 @@ services:
       - /dev/dri:/dev/dri
     group_add:
       - "989" # render group
+    healthcheck:
+      interval: 10s 
+      retries: 5
+      start_period: 30s
+      timeout: 20s
+      test: [ "CMD", "curl", "--fail", "http://127.0.0.1:8096/web" ]
   
   caddy:
     image: caddy:latest
@@ -33,7 +39,7 @@ services:
       - "443:443"
       - "443:443/udp"
     networks:
-      - "proxy"
+      - jellyfin
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./data/caddy_data:/data
@@ -42,6 +48,8 @@ services:
   sonarr:
     image: lscr.io/linuxserver/sonarr
     container_name: sonarr
+    networks:
+      - jellyfin
     environment:
       - PUID=1000
       - PGID=1000
@@ -63,6 +71,8 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
+    networks:
+      - jellyfin    
     environment:
       - PUID=1000
       - PGID=1000
@@ -84,6 +94,8 @@ services:
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
+    networks:
+      - jellyfin
     environment:
       - LOG_LEVEL=debug
       - TZ=Europe/Brussels
@@ -97,6 +109,8 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
+    networks:
+      - jellyfin
     environment:
       - PUID=1000
       - PGID=1000
@@ -110,6 +124,8 @@ services:
   qbittorrent:
     image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
+    networks:
+      - jellyfin
     environment:
       - PUID=1000
       - PGID=1000
@@ -129,6 +145,8 @@ services:
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
+    networks:
+      - jellyfin
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
@@ -204,6 +222,8 @@ services:
     container_name: dashdot
     image: mauricenino/dashdot:nvidia
     restart: unless-stopped
+    networks:
+      - jellyfin
     privileged: true
     deploy:
       resources:
@@ -218,20 +238,34 @@ services:
     environment:
       DASHDOT_WIDGET_LIST: 'os,cpu,storage,ram,network,gpu'
 
-  homarr:
-    container_name: homarr
-    image: ghcr.io/homarr-labs/homarr:latest
-    restart: unless-stopped
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
     network_mode: host
-    env_file: 
-      - .env
+    # port is 3000
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
-      - ./homarr/appdata:/appdata
+      - ./homepage/config:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations
+    env_file:
+      - .env
+    depends_on: 
+      jellyfin:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
     environment:
-      - SECRET_ENCRYPTION_KEY=${HOMARR_KEY} # <--- can be generated with `openssl rand -hex 32`
+      PUID: 1000
+      PGID: 1000
+      HOMEPAGE_VAR_JELLYFIN_API_KEY: ${HOMEPAGE_VAR_JELLYFIN_API_KEY}
+      HOMEPAGE_VAR_JELLYSEERR_API_KEY: ${HOMEPAGE_VAR_JELLYSEERR_API_KEY}
+      HOMEPAGE_VAR_SONARR_API_KEY: ${SONARR_API_KEY}
+      HOMEPAGE_VAR_RADARR_API_KEY: ${RADARR_API_KEY}
+      HOMEPAGE_VAR_QBITTORRENT_PASS: ${QBITTORRENT_PASS}
+
 
 networks:
-  proxy:
+  jellyfin:
     driver: bridge
 
