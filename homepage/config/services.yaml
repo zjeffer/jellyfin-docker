@@ -1,0 +1,49 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/services/
+
+- Mediaserver:
+    - Jellyfin:
+        href: http://zjeffer.duckdns.org:8096/
+        icon: jellyfin.png
+        widget:
+            type: jellyfin
+            url: http://localhost:8096
+            key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
+            enableBlocks: true # optional, defaults to false
+            enableNowPlaying: true # optional, defaults to true
+            enableUser: true # optional, defaults to false
+            showEpisodeNumber: true # optional, defaults to false
+            expandOneStreamToTwoRows: false # optional, defaults to true
+    - Jellyseerr:
+        href: http://zjeffer.duckdns.org:5055
+        icon: jellyseerr.png
+        widget:
+            type: jellyseerr
+            url: http://localhost:5055
+            key: {{HOMEPAGE_VAR_JELLYSEERR_API_KEY}}
+    - Sonarr:
+        href: http://zjeffer.duckdns.org:8989
+        icon: sonarr.png
+        widget:
+            type: sonarr
+            url: http://localhost:8989
+            key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
+            enableQueue: true # optional, defaults to false
+    - Radarr:
+        href: http://zjeffer.duckdns.org:7878
+        icon: radarr.png
+        widget:
+            type: radarr
+            url: http://localhost:7878
+            key: {{HOMEPAGE_VAR_RADARR_API_KEY}}
+            enableQueue: true # optional, defaults to false
+    - qBittorrent:
+        href: http://zjeffer.duckdns.org:8080
+        icon: qbittorrent.png
+        widget:
+            type: qbittorrent
+            url: http://localhost:8080
+            username: admin
+            password: {{HOMEPAGE_VAR_QBITTORRENT_PASS}}
+            enableLeechProgress: true # optional, defaults to false

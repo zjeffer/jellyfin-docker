@@ -1,0 +1,20 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/settings/
+
+title: Homeserver
+headerStyle: boxed
+
+
+layout:
+  Media:
+    style: row
+    columns: 4
+  System:
+    style: row
+    colums: 2
+
+providers:
+  openweathermap: {{HOMEPAGE_VAR_OPENWEATHERMAP}}
+
+
