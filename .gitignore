@@ -6,3 +6,4 @@ qbittorrent/
 radarr/
 sonarr/
 .env
+homepage/config/logs/
