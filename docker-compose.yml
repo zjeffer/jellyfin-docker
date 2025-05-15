@@ -1,272 +1,270 @@
 services:
-  jellyfin:
-    image: linuxserver/jellyfin:latest
-    container_name: jellyfin
-    restart:  unless-stopped
-    ports:
-      - "8096:8096"
-      - "8920:8920"
-    networks:
-      - jellyfin
-    volumes:
-      - ./data/jellyfin-config:/config
-      - ./data/jellyfin-cache:/cache
-      - /run/media/admin/Elements/TUUR:/media/Elements/
-      - /run/media/admin/MiniElements:/media/MiniElements/
-      - /run/media/admin/barracuda/tv:/media/tv/
-      - /run/media/admin/barracuda/movies:/media/movies
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Brussels
-    devices:
-      - /dev/dri:/dev/dri
-    group_add:
-      - "989" # render group
-    healthcheck:
-      interval: 10s 
-      retries: 5
-      start_period: 30s
-      timeout: 20s
-      test: [ "CMD", "curl", "--fail", "http://127.0.0.1:8096/web" ]
-  
-  caddy:
-    image: caddy:latest
-    container_name: caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    networks:
-      - jellyfin
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./data/caddy_data:/data
-      - ./data/caddy_config:/config
+    jellyfin:
+        image: linuxserver/jellyfin:latest
+        container_name: jellyfin
+        restart: unless-stopped
+        ports:
+            - "8096:8096"
+            - "8920:8920"
+        networks:
+            - jellyfin
+        volumes:
+            - ./data/jellyfin-config:/config
+            - ./data/jellyfin-cache:/cache
+            - /run/media/admin/Elements/TUUR:/media/Elements/
+            - /run/media/admin/MiniElements:/media/MiniElements/
+            - /run/media/admin/barracuda/tv:/media/tv/
+            - /run/media/admin/barracuda/movies:/media/movies
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Europe/Brussels
+        devices:
+            - /dev/dri:/dev/dri
+        group_add:
+            - "989" # render group
+        healthcheck:
+            interval: 10s
+            retries: 5
+            start_period: 30s
+            timeout: 20s
+            test: ["CMD", "curl", "--fail", "http://127.0.0.1:8096/web"]
 
-  sonarr:
-    image: lscr.io/linuxserver/sonarr
-    container_name: sonarr
-    networks:
-      - jellyfin
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Brussels
-    volumes:
-      - ./sonarr/config:/config
-      - /run/media/admin/barracuda/tv:/tv
-      - /mnt/downloads:/downloads
-    restart: unless-stopped
-    healthcheck:
-      interval: 10s 
-      retries: 5
-      start_period: 30s
-      timeout: 20s
-      test: [ "CMD", "curl", "--fail", "http://127.0.0.1:8989/sonarr/ping" ]
-    ports: 
-      - 8989:8989
+    caddy:
+        image: caddy:latest
+        container_name: caddy
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+        networks:
+            - jellyfin
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - ./data/caddy_data:/data
+            - ./data/caddy_config:/config
 
-  radarr:
-    image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
-    networks:
-      - jellyfin    
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Brussels
-    volumes:
-      - ./radarr/config:/config
-      - /run/media/admin/barracuda/movies:/movies
-      - /mnt/downloads:/downloads
-    ports:
-      - 7878:7878
-    healthcheck:
-      interval: 10s 
-      retries: 5
-      start_period: 30s
-      timeout: 20s
-      test: ["CMD", "curl", "--fail", "http://127.0.0.1:7878/radarr/ping"]
-    restart: unless-stopped
+    sonarr:
+        image: lscr.io/linuxserver/sonarr
+        container_name: sonarr
+        networks:
+            - jellyfin
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Europe/Brussels
+        volumes:
+            - ./sonarr/config:/config
+            - /run/media/admin/barracuda/tv:/tv
+            - /mnt/downloads:/downloads
+        restart: unless-stopped
+        healthcheck:
+            interval: 10s
+            retries: 5
+            start_period: 30s
+            timeout: 20s
+            test: ["CMD", "curl", "--fail", "http://127.0.0.1:8989/sonarr/ping"]
+        ports:
+            - 8989:8989
 
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    networks:
-      - jellyfin
-    environment:
-      - LOG_LEVEL=debug
-      - TZ=Europe/Brussels
-      - PORT=5055
-    ports:
-      - 5055:5055
-    volumes:
-      - ./jellyseerr/config:/app/config
-    restart: unless-stopped
+    radarr:
+        image: lscr.io/linuxserver/radarr:latest
+        container_name: radarr
+        networks:
+            - jellyfin
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Europe/Brussels
+        volumes:
+            - ./radarr/config:/config
+            - /run/media/admin/barracuda/movies:/movies
+            - /mnt/downloads:/downloads
+        ports:
+            - 7878:7878
+        healthcheck:
+            interval: 10s
+            retries: 5
+            start_period: 30s
+            timeout: 20s
+            test: ["CMD", "curl", "--fail", "http://127.0.0.1:7878/radarr/ping"]
+        restart: unless-stopped
 
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    networks:
-      - jellyfin
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Brussels
-    volumes:
-      - ./prowlarr/data:/config
-    ports:
-      - 9696:9696
-    restart: unless-stopped
+    jellyseerr:
+        image: fallenbagel/jellyseerr:latest
+        container_name: jellyseerr
+        networks:
+            - jellyfin
+        environment:
+            - LOG_LEVEL=debug
+            - TZ=Europe/Brussels
+            - PORT=5055
+        ports:
+            - 5055:5055
+        volumes:
+            - ./jellyseerr/config:/app/config
+        restart: unless-stopped
 
-  qbittorrent:
-    image: linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    networks:
-      - jellyfin
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Brussels
-      - WEBUI_PORT=8080
-    volumes:
-      - ./qbittorrent/config:/config
-      - /mnt/downloads:/downloads
-      - /run/media/admin/Elements/TUUR:/media/Elements/
-      - /run/media/admin/MiniElements:/media/MiniElements/
-    ports:
-      - 8080:8080
-      - 6881:6881
-      - 6881:6881/udp
-    restart: unless-stopped
+    prowlarr:
+        image: lscr.io/linuxserver/prowlarr:latest
+        container_name: prowlarr
+        networks:
+            - jellyfin
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Europe/Brussels
+        volumes:
+            - ./prowlarr/data:/config
+        ports:
+            - 9696:9696
+        restart: unless-stopped
 
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    networks:
-      - jellyfin
-    environment:
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - LOG_HTML=${LOG_HTML:-false}
-      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-      - TZ=Europe/Brussels
-    ports:
-      - 8191:8191
-    restart: unless-stopped
+    qbittorrent:
+        image: linuxserver/qbittorrent:latest
+        container_name: qbittorrent
+        networks:
+            - jellyfin
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Europe/Brussels
+            - WEBUI_PORT=8080
+        volumes:
+            - ./qbittorrent/config:/config
+            - /mnt/downloads:/downloads
+            - /run/media/admin/Elements/TUUR:/media/Elements/
+            - /run/media/admin/MiniElements:/media/MiniElements/
+        ports:
+            - 8080:8080
+            - 6881:6881
+            - 6881:6881/udp
+        restart: unless-stopped
 
-  decluttarr:
-    image: ghcr.io/manimatter/decluttarr:latest
-    container_name: decluttarr
-    network_mode: host
-    restart: unless-stopped
-    depends_on: 
-      sonarr:
-        condition: service_healthy
-      radarr:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      TZ: Europe/Brussels
-      PUID: 1000
-      PGID: 1000
+    flaresolverr:
+        image: ghcr.io/flaresolverr/flaresolverr:latest
+        container_name: flaresolverr
+        networks:
+            - jellyfin
+        environment:
+            - LOG_LEVEL=${LOG_LEVEL:-info}
+            - LOG_HTML=${LOG_HTML:-false}
+            - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+            - TZ=Europe/Brussels
+        ports:
+            - 8191:8191
+        restart: unless-stopped
 
-      ## General
-      # TEST_RUN: True
-      # SSL_VERIFICATION: False
-      LOG_LEVEL: INFO
+    decluttarr:
+        image: ghcr.io/manimatter/decluttarr:latest
+        container_name: decluttarr
+        network_mode: host
+        restart: unless-stopped
+        depends_on:
+            sonarr:
+                condition: service_healthy
+            radarr:
+                condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            TZ: Europe/Brussels
+            PUID: 1000
+            PGID: 1000
 
-      ## Features
-      REMOVE_TIMER: 5
-      REMOVE_FAILED: True
-      REMOVE_FAILED_IMPORTS: True
-      REMOVE_METADATA_MISSING: True
-      REMOVE_MISSING_FILES: True
-      REMOVE_ORPHANS: True
-      REMOVE_SLOW: False
-      REMOVE_STALLED: True
-      REMOVE_UNMONITORED: False
-      RUN_PERIODIC_RESCANS: '
-        {
-        "SONARR": {"MISSING": true, "CUTOFF_UNMET": true, "MAX_CONCURRENT_SCANS": 3, "MIN_DAYS_BEFORE_RESCAN": 7},
-        "RADARR": {"MISSING": true, "CUTOFF_UNMET": true, "MAX_CONCURRENT_SCANS": 3, "MIN_DAYS_BEFORE_RESCAN": 7}
-        }'
+            ## General
+            # TEST_RUN: True
+            # SSL_VERIFICATION: False
+            LOG_LEVEL: INFO
 
-      # Feature Settings
-      PERMITTED_ATTEMPTS: 3
-      NO_STALLED_REMOVAL_QBIT_TAG: Don't Kill
-      MIN_DOWNLOAD_SPEED: 100
-      FAILED_IMPORT_MESSAGE_PATTERNS: '
-        [
-        "Not a Custom Format upgrade for existing",
-        "Not an upgrade for existing"
-        ]'
-      # IGNORED_DOWNLOAD_CLIENTS: ["emulerr"]
+            ## Features
+            REMOVE_TIMER: 5
+            REMOVE_FAILED: True
+            REMOVE_FAILED_IMPORTS: True
+            REMOVE_METADATA_MISSING: True
+            REMOVE_MISSING_FILES: True
+            REMOVE_ORPHANS: True
+            REMOVE_SLOW: False
+            REMOVE_STALLED: True
+            REMOVE_UNMONITORED: False
+            RUN_PERIODIC_RESCANS: '
+                {
+                "SONARR": {"MISSING": true, "CUTOFF_UNMET": true, "MAX_CONCURRENT_SCANS": 3, "MIN_DAYS_BEFORE_RESCAN": 7},
+                "RADARR": {"MISSING": true, "CUTOFF_UNMET": true, "MAX_CONCURRENT_SCANS": 3, "MIN_DAYS_BEFORE_RESCAN": 7}
+                }'
 
-      ## Radarr
-      RADARR_URL: http://localhost:7878
-      RADARR_KEY: ${RADARR_API_KEY}
+            # Feature Settings
+            PERMITTED_ATTEMPTS: 3
+            NO_STALLED_REMOVAL_QBIT_TAG: Don't Kill
+            MIN_DOWNLOAD_SPEED: 100
+            FAILED_IMPORT_MESSAGE_PATTERNS: '
+                [
+                "Not a Custom Format upgrade for existing",
+                "Not an upgrade for existing"
+                ]'
+            # IGNORED_DOWNLOAD_CLIENTS: ["emulerr"]
 
-      ## Sonarr
-      SONARR_URL: http://localhost:8989
-      SONARR_KEY: ${SONARR_API_KEY}
+            ## Radarr
+            RADARR_URL: http://localhost:7878
+            RADARR_KEY: ${RADARR_API_KEY}
 
-      ## qBitorrent
-      QBITTORRENT_URL: http://localhost:8080
-      QBITTORRENT_USERNAME: admin
-      QBITTORRENT_PASSWORD: ${QBITTORRENT_PASS}
+            ## Sonarr
+            SONARR_URL: http://localhost:8989
+            SONARR_KEY: ${SONARR_API_KEY}
 
-  dashdot:
-    container_name: dashdot
-    image: mauricenino/dashdot:nvidia
-    restart: unless-stopped
-    networks:
-      - jellyfin
-    privileged: true
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities:
-                - gpu
-    volumes:
-      - /:/mnt/host:ro
-    ports: 
-      - 3001:3001
-    environment:
-      DASHDOT_WIDGET_LIST: 'os,cpu,storage,ram,network,gpu'
+            ## qBitorrent
+            QBITTORRENT_URL: http://localhost:8080
+            QBITTORRENT_USERNAME: admin
+            QBITTORRENT_PASSWORD: ${QBITTORRENT_PASS}
 
-  homepage:
-    image: ghcr.io/gethomepage/homepage:latest
-    container_name: homepage
-    network_mode: host
-    # port is 3000
-    volumes:
-      - ./homepage/config:/app/config # Make sure your local config directory exists
-      - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations
-    env_file:
-      - .env
-    depends_on: 
-      jellyfin:
-        condition: service_healthy
-      sonarr:
-        condition: service_healthy
-      radarr:
-        condition: service_healthy
-    environment:
-      PUID: 1000
-      PGID: 1000
-      HOMEPAGE_ALLOWED_HOSTS: homeserver:3000
-      HOMEPAGE_VAR_JELLYFIN_API_KEY: ${HOMEPAGE_VAR_JELLYFIN_API_KEY}
-      HOMEPAGE_VAR_JELLYSEERR_API_KEY: ${HOMEPAGE_VAR_JELLYSEERR_API_KEY}
-      HOMEPAGE_VAR_SONARR_API_KEY: ${SONARR_API_KEY}
-      HOMEPAGE_VAR_RADARR_API_KEY: ${RADARR_API_KEY}
-      HOMEPAGE_VAR_QBITTORRENT_PASS: ${QBITTORRENT_PASS}
+    dashdot:
+        container_name: dashdot
+        image: mauricenino/dashdot:nvidia
+        restart: unless-stopped
+        networks:
+            - jellyfin
+        privileged: true
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - capabilities:
+                              - gpu
+        volumes:
+            - /:/mnt/host:ro
+        ports:
+            - 3001:3001
+        environment:
+            DASHDOT_WIDGET_LIST: "os,cpu,storage,ram,network,gpu"
 
+    homepage:
+        image: ghcr.io/gethomepage/homepage:latest
+        container_name: homepage
+        network_mode: host
+        # port is 3000
+        volumes:
+            - ./homepage/config:/app/config # Make sure your local config directory exists
+            - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations
+        env_file:
+            - .env
+        depends_on:
+            jellyfin:
+                condition: service_healthy
+            sonarr:
+                condition: service_healthy
+            radarr:
+                condition: service_healthy
+        environment:
+            PUID: 1000
+            PGID: 1000
+            HOMEPAGE_ALLOWED_HOSTS: homeserver:3000
+            HOMEPAGE_VAR_JELLYFIN_API_KEY: ${HOMEPAGE_VAR_JELLYFIN_API_KEY}
+            HOMEPAGE_VAR_JELLYSEERR_API_KEY: ${HOMEPAGE_VAR_JELLYSEERR_API_KEY}
+            HOMEPAGE_VAR_SONARR_API_KEY: ${SONARR_API_KEY}
+            HOMEPAGE_VAR_RADARR_API_KEY: ${RADARR_API_KEY}
+            HOMEPAGE_VAR_QBITTORRENT_PASS: ${QBITTORRENT_PASS}
 
 networks:
-  jellyfin:
-    driver: bridge
-
+    jellyfin:
+        driver: bridge
