@@ -57,7 +57,7 @@ services:
     volumes:
       - ./sonarr/config:/config
       - /run/media/admin/barracuda/tv:/tv
-      - /run/media/admin/barracuda/downloads:/downloads
+      - /mnt/downloads:/downloads
     restart: unless-stopped
     healthcheck:
       interval: 10s 
@@ -80,7 +80,7 @@ services:
     volumes:
       - ./radarr/config:/config
       - /run/media/admin/barracuda/movies:/movies
-      - /run/media/admin/barracuda/downloads:/downloads
+      - /mnt/downloads:/downloads
     ports:
       - 7878:7878
     healthcheck:
@@ -133,7 +133,7 @@ services:
       - WEBUI_PORT=8080
     volumes:
       - ./qbittorrent/config:/config
-      - /run/media/admin/barracuda/downloads:/downloads
+      - /mnt/downloads:/downloads
       - /run/media/admin/Elements/TUUR:/media/Elements/
       - /run/media/admin/MiniElements:/media/MiniElements/
     ports:
