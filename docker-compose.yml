@@ -218,26 +218,6 @@ services:
             QBITTORRENT_USERNAME: admin
             QBITTORRENT_PASSWORD: ${QBITTORRENT_PASS}
 
-    dashdot:
-        container_name: dashdot
-        image: mauricenino/dashdot:nvidia
-        restart: unless-stopped
-        networks:
-            - jellyfin
-        privileged: true
-        deploy:
-            resources:
-                reservations:
-                    devices:
-                        - capabilities:
-                              - gpu
-        volumes:
-            - /:/mnt/host:ro
-        ports:
-            - 3001:3001
-        environment:
-            DASHDOT_WIDGET_LIST: "os,cpu,storage,ram,network,gpu"
-
     homepage:
         image: ghcr.io/gethomepage/homepage:latest
         container_name: homepage
