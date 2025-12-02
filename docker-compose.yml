@@ -64,7 +64,7 @@ services:
             retries: 5
             start_period: 30s
             timeout: 20s
-            test: ["CMD", "curl", "--fail", "http://127.0.0.1:8989/sonarr/ping"]
+            test: ["CMD", "curl", "--fail", "http://127.0.0.1:8989/ping"]
         ports:
             - 8989:8989
 
@@ -88,7 +88,7 @@ services:
             retries: 5
             start_period: 30s
             timeout: 20s
-            test: ["CMD", "curl", "--fail", "http://127.0.0.1:7878/radarr/ping"]
+            test: ["CMD", "curl", "--fail", "http://127.0.0.1:7878/ping"]
         restart: unless-stopped
 
     jellyseerr:
@@ -159,7 +159,8 @@ services:
     decluttarr:
         image: ghcr.io/manimatter/decluttarr:latest
         container_name: decluttarr
-        network_mode: host
+        networks: 
+            - jellyfin
         restart: unless-stopped
         depends_on:
             sonarr:
