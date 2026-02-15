@@ -7,7 +7,7 @@ services:
             - "8096:8096"
             - "8920:8920"
         networks:
-            - jellyfin
+            - mediaserver_network
         volumes:
             - ./data/jellyfin-config:/config
             - ./data/jellyfin-cache:/cache
@@ -39,7 +39,7 @@ services:
             - "443:443"
             - "443:443/udp"
         networks:
-            - jellyfin
+            - mediaserver_network
         volumes:
             - ./Caddyfile:/etc/caddy/Caddyfile
             - ./data/caddy_data:/data
@@ -49,7 +49,7 @@ services:
         image: lscr.io/linuxserver/sonarr
         container_name: sonarr
         networks:
-            - jellyfin
+            - mediaserver_network
         environment:
             - PUID=1000
             - PGID=1000
@@ -72,7 +72,7 @@ services:
         image: lscr.io/linuxserver/radarr:latest
         container_name: radarr
         networks:
-            - jellyfin
+            - mediaserver_network
         environment:
             - PUID=1000
             - PGID=1000
@@ -91,11 +91,12 @@ services:
             test: ["CMD", "curl", "--fail", "http://127.0.0.1:7878/ping"]
         restart: unless-stopped
 
-    jellyseerr:
-        image: fallenbagel/jellyseerr:latest
-        container_name: jellyseerr
+    seerr:
+        image: ghcr.io/seerr-team/seerr:latest
+        init: true
+        container_name: seerr
         networks:
-            - jellyfin
+            - mediaserver_network
         environment:
             - LOG_LEVEL=debug
             - TZ=Europe/Brussels
@@ -103,14 +104,14 @@ services:
         ports:
             - 5055:5055
         volumes:
-            - ./jellyseerr/config:/app/config
+            - ./seerr/config:/app/config
         restart: unless-stopped
 
     prowlarr:
         image: lscr.io/linuxserver/prowlarr:latest
         container_name: prowlarr
         networks:
-            - jellyfin
+            - mediaserver_network
         environment:
             - PUID=1000
             - PGID=1000
@@ -125,7 +126,7 @@ services:
         image: linuxserver/qbittorrent:latest
         container_name: qbittorrent
         networks:
-            - jellyfin
+            - mediaserver_network
         environment:
             - PUID=1000
             - PGID=1000
@@ -146,7 +147,7 @@ services:
         image: ghcr.io/flaresolverr/flaresolverr:latest
         container_name: flaresolverr
         networks:
-            - jellyfin
+            - mediaserver_network
         environment:
             - LOG_LEVEL=${LOG_LEVEL:-info}
             - LOG_HTML=${LOG_HTML:-false}
@@ -160,7 +161,7 @@ services:
         image: ghcr.io/manimatter/decluttarr:latest
         container_name: decluttarr
         networks: 
-            - jellyfin
+            - mediaserver_network
         restart: unless-stopped
         depends_on:
             sonarr:
@@ -207,23 +208,25 @@ services:
             # IGNORED_DOWNLOAD_CLIENTS: ["emulerr"]
 
             ## Radarr
-            RADARR_URL: http://localhost:7878
+            RADARR_URL: http://radarr:7878
             RADARR_KEY: ${RADARR_API_KEY}
 
             ## Sonarr
-            SONARR_URL: http://localhost:8989
+            SONARR_URL: http://sonarr:8989
             SONARR_KEY: ${SONARR_API_KEY}
 
             ## qBitorrent
-            QBITTORRENT_URL: http://localhost:8080
+            QBITTORRENT_URL: http://qbittorrent:8080
             QBITTORRENT_USERNAME: admin
             QBITTORRENT_PASSWORD: ${QBITTORRENT_PASS}
 
     homepage:
         image: ghcr.io/gethomepage/homepage:latest
         container_name: homepage
-        network_mode: host
-        # port is 3000
+        networks:
+            - mediaserver_network
+        ports:
+            - "3000:3000"
         volumes:
             - ./homepage/config:/app/config # Make sure your local config directory exists
             - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations
@@ -241,11 +244,11 @@ services:
             PGID: 1000
             HOMEPAGE_ALLOWED_HOSTS: homeserver:3000
             HOMEPAGE_VAR_JELLYFIN_API_KEY: ${HOMEPAGE_VAR_JELLYFIN_API_KEY}
-            HOMEPAGE_VAR_JELLYSEERR_API_KEY: ${HOMEPAGE_VAR_JELLYSEERR_API_KEY}
+            HOMEPAGE_VAR_SEERR_API_KEY: ${HOMEPAGE_VAR_SEERR_API_KEY}
             HOMEPAGE_VAR_SONARR_API_KEY: ${SONARR_API_KEY}
             HOMEPAGE_VAR_RADARR_API_KEY: ${RADARR_API_KEY}
             HOMEPAGE_VAR_QBITTORRENT_PASS: ${QBITTORRENT_PASS}
 
 networks:
-    jellyfin:
-        driver: bridge
+    mediaserver_network:
+        external: true

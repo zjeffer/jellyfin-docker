@@ -1,6 +1,6 @@
 Caddyfile
 data/
-jellyseerr/
+seerr/
 prowlarr/
 qbittorrent/
 radarr/
